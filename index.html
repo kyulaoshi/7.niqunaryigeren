@@ -6,11 +6,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#d62828">
-<title>寻找老师的秘密！ · 선생님의 비밀을 찾아라!</title>
+<title>寻找隐藏的信息 · 선생님이 숨겨둔 메시지를 찾아라!</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏮</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+SC:wght@500;700;900&family=ZCOOL+KuaiLe&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/asia-pinyin.woff" as="font" type="font/woff" crossorigin>
 <link rel="stylesheet" href="css/game.css">
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
 </head>
@@ -21,7 +22,7 @@
 <div id="loading" class="screen">
   <div class="load-box">
     <div class="lantern-ico">🏮</div>
-    <div class="load-title zh">寻找老师的秘密！</div>
+    <div class="load-title zh">寻找隐藏的信息</div>
     <div class="load-bar"><i id="load-fill"></i></div>
     <div id="load-msg" class="load-msg">도시를 짓는 중…</div>
   </div>
@@ -41,9 +42,9 @@
 <div id="lobby" class="screen hidden">
   <div class="lobby-wrap">
     <div class="lobby-title">
-      <div class="title-zh zh" id="lobby-title">寻找老师的秘密！</div>
-      <div class="title-en">Find the Teacher’s Secret!</div>
-      <div class="title-ko" id="lobby-subtitle">선생님의 비밀을 찾아라!</div>
+      <div class="title-zh zh" id="lobby-title">寻找隐藏的信息</div>
+      <div class="title-en">Find the Teacher’s Hidden Messages!</div>
+      <div class="title-ko" id="lobby-subtitle">선생님이 숨겨둔 메시지를 찾아라!</div>
     </div>
     <div id="lobby-mode" class="lobby-mode hidden"></div>
     <div class="lobby-cards">
@@ -83,20 +84,20 @@
 <!-- 게임 HUD -->
 <div id="hud" class="hidden">
   <div id="topbar">
-    <div class="tb-title zh" id="hud-title">寻找老师的秘密！</div>
+    <div class="tb-title zh" id="hud-title">寻找隐藏的信息</div>
     <div class="tb-item"><span class="tb-label" id="hud-time-label">남은 시간</span><span id="hud-time" class="tb-val">--:--</span></div>
     <div class="tb-item"><span class="tb-label">비밀 메시지</span><span class="tb-val"><b id="hud-count">0</b>/10</span></div>
     <div class="tb-item mission-mini"><span class="tb-label">현재 미션</span><span id="hud-mission" class="tb-val zh">—</span></div>
     <div class="tb-btns">
       <button id="btn-collect" class="icon-btn only-compact" title="모은 메시지 보기">📜</button>
-      <button id="btn-korean" class="icon-btn" title="한국어 뜻 보기">한</button>
+      <button id="btn-korean" class="icon-btn hidden" title="한국어 뜻 보기" aria-hidden="true" tabindex="-1">한</button>
       <button id="btn-settings" class="icon-btn" title="설정">⚙️</button>
     </div>
   </div>
 
   <div id="left">
     <div class="panel mission-card">
-      <div class="mc-q"><span class="zh">你去哪儿？</span><span class="ko-line">너는 어디에 가니?</span></div>
+      <div class="mc-q"><span class="zh">你去哪儿？</span></div>
       <div class="mc-a">
         <span class="zh mc-wo">我去</span>
         <span id="mc-dest" class="zh mc-dest">—</span>
@@ -151,6 +152,7 @@
     <div class="msg-place"><span id="msg-icon"></span> <span id="msg-dest" class="zh"></span></div>
     <div class="msg-label">비밀 메시지 <b id="msg-num"></b></div>
     <div id="msg-text" class="msg-text zh"></div>
+    <div id="msg-py" class="msg-py"></div>
     <div class="msg-note">✏️ 학습지에 기록하세요!</div>
     <button id="msg-ok" class="btn primary">확인 <span class="zh">好的</span> <kbd>Enter</kbd></button>
   </div>
@@ -174,7 +176,6 @@
     <div class="big-emoji">🏆</div>
     <div class="zh fin-1">恭喜你！任务完成！</div>
     <div class="zh fin-2">你成功找到了老师的全部秘密！</div>
-    <div class="fin-ko">선생님의 비밀 10개를 모두 찾았어요!</div>
     <div class="fin-record">기록 <b id="fin-time">--:--</b></div>
     <div id="fin-msgs" class="fin-msgs"></div>
     <div class="fin-note">✏️ 학습지에 모두 적었는지 확인하고 <b>선생님께 제출</b>하세요.</div>

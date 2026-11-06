@@ -99,7 +99,9 @@ export class Kit {
 }
 
 /* ---------- 텍스트/아이콘 텍스처 ---------- */
-export const ZH_FONT = '"Noto Sans SC","Microsoft YaHei","PingFang SC","Noto Sans CJK SC","Noto Sans CJK TC","SimHei",sans-serif';
+export const PY_FONT = '"AsiaPinyin","Nunito","Segoe UI",sans-serif';
+// 간판의 로마자(병음)는 AsiaPinyin, 한자는 중국어 글꼴로 그려집니다
+export const ZH_FONT = '"AsiaPinyin","Noto Sans SC","Microsoft YaHei","PingFang SC","Noto Sans CJK SC","Noto Sans CJK TC","SimHei",sans-serif';
 
 export function signTexture(text, { sub = '', bg = '#b3121f', fg = '#ffe9a8', border = '#f2c14e', w = 512, h = 192, font = ZH_FONT, vertical = false } = {}) {
   const cv = document.createElement('canvas');
@@ -119,7 +121,7 @@ export function signTexture(text, { sub = '', bg = '#b3121f', fg = '#ffe9a8', bo
     let fsz = main;
     while (g.measureText(text).width > w - 60 && fsz > 20) { fsz -= 4; g.font = `900 ${fsz}px ${font}`; }
     g.fillText(text, w / 2, sub ? h * 0.42 : h * 0.53);
-    if (sub) { g.font = `600 ${h * 0.17}px "Nunito","Segoe UI",sans-serif`; g.globalAlpha = 0.9; g.fillText(sub, w / 2, h * 0.8); }
+    if (sub) { g.font = `400 ${h * 0.19}px ${PY_FONT}`; g.globalAlpha = 0.9; g.fillText(sub, w / 2, h * 0.8); }
   }
   const t = new THREE.CanvasTexture(cv);
   t.colorSpace = THREE.SRGBColorSpace;

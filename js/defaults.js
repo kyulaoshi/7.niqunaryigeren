@@ -53,8 +53,8 @@ export const PHRASE_LABELS = {
 };
 
 export const DEFAULT_SETTINGS = {
-  title: '寻找老师的秘密！',
-  subtitle: '선생님의 비밀을 찾아라!',
+  title: '寻找隐藏的信息',
+  subtitle: '선생님이 숨겨둔 메시지를 찾아라!',
   durationMin: 20,         // 0 = 시간 제한 없음
   allowJoin: true,
   showKorean: true,        // 학생 화면에서 한국어 뜻 보기 허용

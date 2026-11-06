@@ -355,7 +355,7 @@ function renderCollection() {
     const li = document.createElement('li');
     li.className = c ? 'got' : '';
     if (id === S.mission) li.classList.add('cur');
-    li.innerHTML = `<span class="ci-n">${i + 1}</span><span class="ci-place zh">${d.zh}</span><span class="ci-msg zh">${c ? escapeHtml(c.m) : '?'}</span><span class="ci-ok">${c ? '✓' : ''}</span>`;
+    li.innerHTML = `<span class="ci-n">${i + 1}</span><span class="ci-place zh">${d.zh}</span><span class="ci-msg zh">${c ? escapeHtml(msgZh(c.m)) + `<small class="mpy">${escapeHtml(msgPy(c.m))}</small>` : '?'}</span><span class="ci-ok">${c ? '✓' : ''}</span>`;
     list.appendChild(li);
     markers[id] && markers[id].setDone(!!c);
     if (chests[id] && c && chests[id].state !== 'opened' && chests[id].state !== 'opening') chests[id].setOpened();
@@ -364,6 +364,10 @@ function renderCollection() {
   const pct = Math.round(n * 10);
   $('cc-fill').style.width = pct + '%'; $('cc-pct').textContent = pct + '%';
 }
+// 비밀 메시지: "한자\t병음" 형식
+const msgZh = m => String(m ?? '').split('\t')[0];
+const msgPy = m => String(m ?? '').split('\t')[1] || '';
+const msgHTML = (m, cls = 'zh') => m ? `<b class="${cls}">${escapeHtml(msgZh(m))}</b><small class="mpy">${escapeHtml(msgPy(m))}</small>` : `<b class="${cls}">?</b><small class="mpy">&nbsp;</small>`;
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 /* ====================================================================== */
@@ -435,8 +439,10 @@ function showMsg(id, msg) {
   const d = S.cfg.destinations[id];
   $('msg-icon').textContent = d.icon; $('msg-dest').textContent = d.zh;
   $('msg-num').textContent = '#' + (DEST_IDS.indexOf(id) + 1);
-  $('msg-text').textContent = msg;
-  $('msg-text').style.fontSize = msg.length > 6 ? (msg.length > 14 ? '40px' : '64px') : '120px';
+  const zh = msgZh(msg);
+  $('msg-text').textContent = zh;
+  $('msg-py').textContent = msgPy(msg);
+  $('msg-text').style.fontSize = zh.length > 6 ? (zh.length > 14 ? '40px' : '64px') : '';
   show('msg-modal', true);
   S.audio.sfx('collect');
   S.msgReady = false;
@@ -460,7 +466,7 @@ function showFinish(announce) {
   const rec = S.me && S.me.finishedAt ? S.me.finishedAt - (S.game.startedAt || 0) - (S.game.pausedTotal || 0) : gameElapsed(S.game, S.store.serverNow());
   $('fin-time').textContent = fmtTime(rec);
   if (S.solo) { const r = S.api.record(); if (r) $('fin-time').textContent = fmtTime(Math.floor(r.ms / 1000) * 1000); }
-  $('fin-msgs').innerHTML = DEST_IDS.map((id, i) => `<div class="fm"><span>${i + 1}. <span class="zh">${S.cfg.destinations[id].zh}</span></span><b class="zh">${escapeHtml(S.collected[id] ? S.collected[id].m : '?')}</b></div>`).join('');
+  $('fin-msgs').innerHTML = DEST_IDS.map((id, i) => `<div class="fm"><span>${i + 1}. <span class="zh">${S.cfg.destinations[id].zh}</span></span>${msgHTML(S.collected[id] && S.collected[id].m)}</div>`).join('');
   show('finish', true);
   if (announce) {
     S.audio.sfx('fanfare');
@@ -686,7 +692,7 @@ function applyGameStatus(first = false) {
     if (prev !== 'ended' && prev !== null && n < 10) { const t = phraseFor('timeUp'); S.audio.say(t.zh, 'timeUp'); }
     if (S.solo) {
       // 제한 시간 종료: 모은 메시지를 보여 주고 기록을 초기화
-      const list = DEST_IDS.map((id, i) => `<div class="fm"><span>${i + 1}. <span class="zh">${escapeHtml(S.cfg.destinations[id].zh)}</span></span><b class="zh">${escapeHtml(S.collected[id] ? S.collected[id].m : '?')}</b></div>`).join('');
+      const list = DEST_IDS.map((id, i) => `<div class="fm"><span>${i + 1}. <span class="zh">${escapeHtml(S.cfg.destinations[id].zh)}</span></span>${msgHTML(S.collected[id] && S.collected[id].m)}</div>`).join('');
       show('finish', false); show('msg-modal', false); S.busy = true;
       overlay(true, '🏁', '게임 종료 <span class="zh">时间到了！</span>', `찾은 비밀 메시지: <b>${n}/10</b><br>아래 메시지를 학습지에 옮겨 적으세요.`,
         `<div class="fin-msgs">${list}</div><p class="reset-note">게임 기록은 초기화되었어요. 다음 사람은 처음부터 시작해요.</p><button class="btn primary" id="ov-restart">처음 화면으로</button>`);
@@ -788,7 +794,7 @@ async function boot() {
     setLoad(45, '중국어 글꼴을 불러오는 중…');
     try {
       const chars = Object.values(S.cfg.destinations).map(d => d.zh).join('') + '宝塔茶馆花店学校';
-      await Promise.race([Promise.all([document.fonts.load(`900 64px "Noto Sans SC"`, chars), document.fonts.load('20px Jua', '가')]), wait(3500)]);
+      await Promise.race([Promise.all([document.fonts.load(`900 64px "Noto Sans SC"`, chars), document.fonts.load('20px Jua', '가'), document.fonts.load('40px AsiaPinyin', 'Wǒ qù xuéxiào ǎǐǒǔǚ')]), wait(3500)]);
     } catch (e) {}
     setLoad(60, '도시를 짓는 중…');
     await wait(30);
@@ -822,7 +828,7 @@ async function boot() {
       $('lobby-mode').innerHTML = `⏱ 제한 시간 <b>${S.cfg.settings.durationMin}분</b> · 시간이 끝나면 게임이 종료되고 기록이 처음부터 다시 시작돼요.`;
       show('lobby-mode', true);
     }
-    S.showKo = localStorage.getItem('tlms_ko') === '1';
+    S.showKo = false;
     applyKoreanToggle();
     buildLobby();
     // 재접속: 이미 참가한 학생이면 바로 이어하기 안내

@@ -1,6 +1,9 @@
+/* 한어병음 전용 글꼴: Asia병음 (병음에 쓰는 글자만 추려서 넣음) */
+@font-face { font-family: "AsiaPinyin"; src: url("../fonts/asia-pinyin.woff") format("woff"); font-display: swap; }
 :root {
   --red: #d62828; --red-d: #9e1b1b; --gold: #f2c14e; --gold-l: #ffe08a; --cream: #fff8ec; --ink: #2b2118;
   --jade: #2bb673; --sky: #3a86ff; --panel: rgba(255, 250, 240, 0.93); --shadow: 0 6px 0 rgba(90, 40, 10, 0.18), 0 14px 30px rgba(40, 20, 0, 0.18);
+  --py: "AsiaPinyin", "Nunito", "Noto Sans KR", sans-serif;
   --zh: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Noto Sans CJK TC", sans-serif;
   --ko: "Jua", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
 }
@@ -96,7 +99,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 .mc-a { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
 .mc-wo { font-size: 30px; font-weight: 700; color: #6a3410; }
 .mc-dest { font-size: 54px; font-weight: 900; color: var(--red); line-height: 1.1; text-shadow: 0 3px 0 #ffd88a; }
-.pinyin { font-family: "Nunito", sans-serif; font-weight: 700; color: #b07a3c; font-size: 17px; margin-top: 2px; }
+.pinyin { font-family: var(--py); font-weight: 400; color: #b07a3c; font-size: 17px; margin-top: 2px; }
 .ko-line { display: none; color: #2a6fb0; font-size: 16px; margin-top: 3px; }
 body.show-ko .ko-line { display: block; }
 body.hide-py .pinyin { display: none; }
@@ -331,3 +334,10 @@ body.touch .mode-badge { bottom: auto; top: 80px; }
 }
 .reset-note { font-size: 15px; color: #8a6a4a; margin: 4px 0 12px; }
 #overlay .center-card { max-height: 92vh; overflow: auto; }
+/* 비밀 메시지 한어병음 */
+.msg-py { font: 400 36px var(--py); color: #b07a3c; margin: -6px 0 10px; letter-spacing: 1px; }
+.mpy { display: block; font: 400 13px var(--py); color: #b07a3c; line-height: 1.1; }
+.ci-msg .mpy { font-size: 11px; }
+.fm small.mpy { font-size: 13px; }
+.ko-line, .fin-ko { display: none !important; }
+@media (max-height: 520px) { .msg-py { font-size: 24px; margin-bottom: 6px; } }
