@@ -384,21 +384,25 @@ function updateZones() {
   if (zone !== S.zone) {
     if (S.zone && chests[S.zone]) chests[S.zone].setActive(false);
     S.zone = zone;
-    if (zone && !S.collected[zone] && S.controlsOn) {
+    if (zone && zone === S.mission && !S.collected[zone] && S.controlsOn) {
+      // 미션 목적지에 도착했을 때만 보물상자가 열림
       chests[zone].setActive(true);
       S.audio.sfx('arrive');
-      const prevMission = S.mission;
-      if (zone !== S.mission) { S.mission = zone; }
       const f = phraseFor('found'), o = phraseFor('openChest');
       showGuide('found', f); lastGuide = { key: 'found' };
       S.audio.sayQueue([{ text: f.zh, key: 'found' }, { text: o.zh, key: 'openChest' }]);
-      S.mission = prevMission;
+    } else if (zone && !S.collected[zone] && S.controlsOn && S.mission) {
+      // 미션과 다른 장소: 상자는 잠겨 있음
+      const now = clock.elapsedTime;
+      if (!S.wrongAt || now - S.wrongAt > 6) { S.wrongAt = now; sayPhrase('wrong'); }
+      guide.minLen = Infinity;
     }
   }
-  const showPrompt = zone && !S.collected[zone] && S.controlsOn && !S.busy;
+  const wrongPlace = zone && zone !== S.mission && !S.collected[zone];
+  const showPrompt = zone && zone === S.mission && !S.collected[zone] && S.controlsOn && !S.busy;
   show('prompt', !!showPrompt);
   $('t-open').classList.toggle('ready', !!showPrompt);
-  setStatus(zone ? (S.collected[zone] ? '✅ 이미 찾은 장소예요' : (S.touch ? '✨ 보물상자 발견! 「열기」를 누르세요' : '✨ 보물상자 발견! E 키를 누르세요')) : (Math.hypot(pState.vel.x, pState.vel.z) > 9 ? '🏃 달리는 중' : '🚶 탐험 중'));
+  setStatus(zone ? (S.collected[zone] ? '✅ 이미 찾은 장소예요' : wrongPlace ? `🔒 여기는 ${S.cfg.destinations[zone].zh}! 미션 장소가 아니에요` : (S.touch ? '✨ 보물상자 발견! 「열기」를 누르세요' : '✨ 보물상자 발견! E 키를 누르세요')) : (Math.hypot(pState.vel.x, pState.vel.z) > 9 ? '🏃 달리는 중' : '🚶 탐험 중'));
 }
 let statusText = '';
 function setStatus(t) { if (t !== statusText) { statusText = t; $('status').textContent = t; } }
@@ -406,6 +410,7 @@ function setStatus(t) { if (t !== statusText) { statusText = t; $('status').text
 async function onInteract() {
   const id = S.zone;
   if (!id || S.collected[id] || S.busy || !S.controlsOn) return;
+  if (id !== S.mission) { S.audio.sfx('error'); return; }
   if (S.game.status !== 'running') return;
   S.busy = true;
   S.msgId = id;
