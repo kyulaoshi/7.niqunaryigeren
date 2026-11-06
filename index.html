@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#d62828">
+<title>寻找老师的秘密！ · 선생님의 비밀을 찾아라!</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏮</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+SC:wght@500;700;900&family=ZCOOL+KuaiLe&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/game.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<!-- 로딩 -->
+<div id="loading" class="screen">
+  <div class="load-box">
+    <div class="lantern-ico">🏮</div>
+    <div class="load-title zh">寻找老师的秘密！</div>
+    <div class="load-bar"><i id="load-fill"></i></div>
+    <div id="load-msg" class="load-msg">도시를 짓는 중…</div>
+  </div>
+</div>
+
+<!-- 오류 -->
+<div id="fatal" class="screen hidden">
+  <div class="card center-card">
+    <div class="big-emoji">😵</div>
+    <h2>앗, 문제가 생겼어요</h2>
+    <p id="fatal-msg"></p>
+    <button class="btn primary" onclick="location.reload()">다시 시도</button>
+  </div>
+</div>
+
+<!-- 로비 -->
+<div id="lobby" class="screen hidden">
+  <div class="lobby-wrap">
+    <div class="lobby-title">
+      <div class="title-zh zh" id="lobby-title">寻找老师的秘密！</div>
+      <div class="title-en">Find the Teacher’s Secret!</div>
+      <div class="title-ko" id="lobby-subtitle">선생님의 비밀을 찾아라!</div>
+    </div>
+    <div id="lobby-mode" class="lobby-mode hidden"></div>
+    <div class="lobby-cards">
+      <div class="card join-card">
+        <h3>여행자 등록 <span class="zh small">旅客登记</span></h3>
+        <label class="field-label" for="name-input">이름 또는 번호</label>
+        <input id="name-input" maxlength="20" placeholder="예: 2-3 김민준" autocomplete="off">
+        <label class="field-label">캐릭터 선택</label>
+        <div id="outfits" class="outfits"></div>
+        <button id="join-btn" class="btn primary big">게임 참가 <span class="zh">出发！</span></button>
+        <div id="join-msg" class="join-msg"></div>
+        <div id="welcome-back" class="welcome-back hidden"></div>
+      </div>
+      <div class="card howto-card">
+        <h3>게임 방법 <span class="zh small">怎么玩</span></h3>
+        <ol class="howto">
+          <li><b>미션 확인</b> · 화면 왼쪽에 <span class="zh">我去 ○○。</span> 목적지가 나와요.</li>
+          <li><b>중국어 길 안내</b>를 듣고 읽으며 직접 찾아가요. <span class="zh">往左拐</span> = 왼쪽!</li>
+          <li>목적지 앞 <b>빛나는 보물상자</b>에서 <kbd>E</kbd> 키를 눌러 열어요.</li>
+          <li><b>비밀 메시지</b>를 학습지에 적어요. 10개를 모두 모으면 완주!</li>
+        </ol>
+        <div class="keys only-desk">
+          <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / 방향키 이동</div>
+          <div><kbd>Shift</kbd> 달리기 · <kbd>Space</kbd> 점프</div>
+          <div><kbd>E</kbd> 보물상자 열기 · 마우스 드래그 시점</div>
+        </div>
+        <div class="keys only-touch">
+          <div>🕹️ 왼쪽 아래 <b>조이스틱</b>으로 이동 (끝까지 밀면 달리기)</div>
+          <div>👆 <b>점프</b> · <b>열기</b> 버튼 · 화면을 밀어서 시점 돌리기</div>
+          <div>🤏 두 손가락으로 확대 · 축소 · 📱 가로 화면 추천</div>
+        </div>
+        <a class="teacher-link" href="make.html">🧑‍🏫 선생님이신가요? <b>수업 QR 만들기</b> →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 게임 HUD -->
+<div id="hud" class="hidden">
+  <div id="topbar">
+    <div class="tb-title zh" id="hud-title">寻找老师的秘密！</div>
+    <div class="tb-item"><span class="tb-label" id="hud-time-label">남은 시간</span><span id="hud-time" class="tb-val">--:--</span></div>
+    <div class="tb-item"><span class="tb-label">비밀 메시지</span><span class="tb-val"><b id="hud-count">0</b>/10</span></div>
+    <div class="tb-item mission-mini"><span class="tb-label">현재 미션</span><span id="hud-mission" class="tb-val zh">—</span></div>
+    <div class="tb-btns">
+      <button id="btn-collect" class="icon-btn only-compact" title="모은 메시지 보기">📜</button>
+      <button id="btn-korean" class="icon-btn" title="한국어 뜻 보기">한</button>
+      <button id="btn-settings" class="icon-btn" title="설정">⚙️</button>
+    </div>
+  </div>
+
+  <div id="left">
+    <div class="panel mission-card">
+      <div class="mc-q"><span class="zh">你去哪儿？</span><span class="ko-line">너는 어디에 가니?</span></div>
+      <div class="mc-a">
+        <span class="zh mc-wo">我去</span>
+        <span id="mc-dest" class="zh mc-dest">—</span>
+        <span class="zh mc-wo">。</span>
+      </div>
+      <div id="mc-py" class="pinyin">—</div>
+      <div id="mc-ko" class="ko-line">—</div>
+      <div class="mc-btns">
+        <button id="btn-skip" class="btn small ghost">다른 목적지 ↻</button>
+      </div>
+    </div>
+    <div class="panel guide-card">
+      <div class="gc-head"><span class="gc-label">🧭 길 안내 <span class="zh small">指路</span></span><span id="gc-speaking" class="speaking"><i></i><i></i><i></i></span></div>
+      <div id="gc-zh" class="zh gc-zh">欢迎来到中国城市！</div>
+      <div id="gc-py" class="pinyin">Huānyíng láidào Zhōngguó chéngshì!</div>
+      <div id="gc-ko" class="ko-line">중국 도시에 온 것을 환영합니다!</div>
+      <div class="gc-btns">
+        <button id="btn-replay" class="btn small">🔊 다시 듣기 <span class="zh">再听一遍</span></button>
+      </div>
+      <div id="gc-log" class="gc-log"></div>
+    </div>
+  </div>
+
+  <div id="right">
+    <div class="panel collect-card">
+      <div class="cc-head zh">秘密消息收集情况</div>
+      <div class="cc-progress"><i id="cc-fill"></i><span id="cc-pct">0%</span></div>
+      <ol id="cc-list" class="cc-list"></ol>
+      <div id="cc-approved" class="approved hidden">✅ 학습지 제출 승인 완료</div>
+    </div>
+  </div>
+
+  <div id="bottom">
+    <div class="ctl-hint"><kbd>WASD</kbd> 이동 · <kbd>Shift</kbd> 달리기 · <kbd>Space</kbd> 점프 · <kbd>E</kbd> 열기 · 🖱 드래그 시점 · 휠 줌</div>
+    <div id="status" class="status">🚶 탐험 중</div>
+  </div>
+
+  <div id="touch-ctl" class="only-touch">
+    <div id="joy" class="joy"><div id="joy-knob" class="joy-knob"></div></div>
+    <button id="t-jump" class="t-btn jump">점프<small>跳</small></button>
+    <button id="t-open" class="t-btn open">열기<small>打开</small></button>
+  </div>
+  <div id="prompt" class="prompt hidden"><kbd>E</kbd> <span class="zh">打开宝箱</span> 보물상자 열기</div>
+  <div id="conn-badge" class="conn-badge hidden">⚠️ 인터넷 연결이 끊겼어요. 다시 연결하는 중…</div>
+</div>
+
+<!-- 메시지 획득 -->
+<div id="msg-modal" class="modal hidden">
+  <div class="msg-card">
+    <div class="msg-rays"></div>
+    <div class="msg-top zh">恭喜你，找到了！</div>
+    <div class="msg-place"><span id="msg-icon"></span> <span id="msg-dest" class="zh"></span></div>
+    <div class="msg-label">비밀 메시지 <b id="msg-num"></b></div>
+    <div id="msg-text" class="msg-text zh"></div>
+    <div class="msg-note">✏️ 학습지에 기록하세요!</div>
+    <button id="msg-ok" class="btn primary">확인 <span class="zh">好的</span> <kbd>Enter</kbd></button>
+  </div>
+</div>
+
+<!-- 상태 오버레이 -->
+<div id="overlay" class="modal hidden">
+  <div class="card center-card">
+    <div id="ov-emoji" class="big-emoji">⏳</div>
+    <h2 id="ov-title"></h2>
+    <p id="ov-text"></p>
+    <div id="ov-extra"></div>
+  </div>
+</div>
+
+<div id="countdown" class="countdown hidden"></div>
+
+<!-- 완주 -->
+<div id="finish" class="modal hidden">
+  <div class="card finish-card">
+    <div class="big-emoji">🏆</div>
+    <div class="zh fin-1">恭喜你！任务完成！</div>
+    <div class="zh fin-2">你成功找到了老师的全部秘密！</div>
+    <div class="fin-ko">선생님의 비밀 10개를 모두 찾았어요!</div>
+    <div class="fin-record">기록 <b id="fin-time">--:--</b></div>
+    <div id="rc-box" class="rc-box hidden">
+      <div class="rc-row"><span>이름</span><b id="rc-name"></b></div>
+      <div class="rc-row"><span>수업</span><b id="rc-class"></b></div>
+      <div class="rc-row"><span>완주 시각</span><b id="rc-when"></b></div>
+      <div class="rc-row"><span>도전</span><b id="rc-tries"></b></div>
+      <div class="rc-row"><span>확인 코드</span><b id="rc-code" class="rc-code"></b></div>
+    </div>
+    <div id="fin-msgs" class="fin-msgs"></div>
+    <div class="fin-note">✏️ 학습지에 모두 적었는지 확인하고 <b>선생님께 제출</b>하세요.<span class="only-solo"><br>📸 이 기록 카드를 <b>캡처</b>하거나 선생님께 보여 주세요.</span></div>
+    <div id="fin-approved" class="approved hidden">✅ 선생님이 학습지 제출을 승인했어요!</div>
+    <button id="fin-close" class="btn ghost">도시 계속 구경하기</button>
+  </div>
+</div>
+
+<!-- 설정 -->
+<div id="settings" class="modal hidden">
+  <div class="card settings-card">
+    <h3>⚙️ 설정</h3>
+    <label>🗣 중국어 음성 <input type="range" id="vol-voice" min="0" max="1" step="0.05"></label>
+    <label>🎵 배경음악 <input type="range" id="vol-music" min="0" max="1" step="0.05"></label>
+    <label>🔔 효과음 <input type="range" id="vol-sfx" min="0" max="1" step="0.05"></label>
+    <label>🐢 말하기 속도 <input type="range" id="voice-rate" min="0.5" max="1.2" step="0.05"></label>
+    <button id="btn-test-voice" class="btn small">🔊 음성 테스트</button>
+    <div id="voice-info" class="voice-info"></div>
+    <label class="row">🖥 그래픽 품질
+      <select id="gfx"><option value="high">높음 (그림자)</option><option value="low">낮음 (빠름)</option></select>
+    </label>
+    <label class="row"><input type="checkbox" id="opt-pinyin"> 병음(Pinyin) 표시</label>
+    <button id="btn-respawn" class="btn small ghost">🏠 출발 지점으로 돌아가기</button>
+    <button id="btn-fullscreen" class="btn small ghost">⛶ 전체 화면</button>
+    <div id="restart-box" class="restart-box only-solo">
+      <button id="btn-restart" class="btn small ghost">↺ 처음부터 다시 하기</button>
+      <div id="restart-confirm" class="hidden">모은 메시지가 모두 지워지고 시간도 다시 시작돼요. 기록 카드에는 도전 횟수가 표시돼요.
+        <div class="row-btns"><button id="restart-yes" class="btn small primary">다시 하기</button><button id="restart-no" class="btn small">취소</button></div>
+      </div>
+    </div>
+    <button id="settings-close" class="btn primary">닫기</button>
+  </div>
+</div>
+
+<div id="mode-badge" class="mode-badge hidden"></div>
+<div id="toast" class="toast hidden"></div>
+<div id="labels"></div>
+
+<script type="module" src="js/game/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+{
+  "rules": {
+    "config": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email == 'teacher@example.com'"
+    },
+    "game": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email == 'teacher@example.com'"
+    },
+    "secrets": {
+      ".read": "auth != null && auth.token.email == 'teacher@example.com'",
+      ".write": "auth != null && auth.token.email == 'teacher@example.com'",
+      "$dest": {
+        ".read": "auth != null && root.child('game/status').val() == 'running'"
+      }
+    },
+    "audio": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email == 'teacher@example.com'"
+    },
+    "names": {
+      ".read": "auth != null && auth.token.email == 'teacher@example.com'",
+      ".write": "auth != null && auth.token.email == 'teacher@example.com'",
+      "$name": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() || data.val() == auth.uid) && (!newData.exists() || newData.val() == auth.uid)",
+        ".validate": "newData.isString() && newData.val().length < 64"
+      }
+    },
+    "requests": {
+      ".read": "auth != null && auth.token.email == 'teacher@example.com'",
+      ".write": "auth != null && auth.token.email == 'teacher@example.com'",
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "players": {
+      ".read": "auth != null && auth.token.email == 'teacher@example.com'",
+      ".write": "auth != null && auth.token.email == 'teacher@example.com'",
+      ".indexOn": ["finishedAt"],
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        "name": {
+          ".write": "auth != null && auth.uid == $uid && (root.child('config/settings/allowJoin').val() != false || data.exists())",
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 20"
+        },
+        "color": {
+          ".write": "auth != null && auth.uid == $uid",
+          ".validate": "newData.isNumber()"
+        },
+        "joinedAt": {
+          ".write": "auth != null && auth.uid == $uid && !data.exists() && newData.val() == now"
+        },
+        "online": { ".write": "auth != null && auth.uid == $uid", ".validate": "newData.isBoolean()" },
+        "lastSeen": { ".write": "auth != null && auth.uid == $uid && newData.val() == now" },
+        "session": { ".write": "auth != null && auth.uid == $uid", ".validate": "newData.isString() && newData.val().length < 40" },
+        "current": { ".write": "auth != null && auth.uid == $uid", ".validate": "newData.isString() && newData.val().length < 8" },
+        "collected": {
+          "$dest": {
+            ".write": "auth != null && auth.uid == $uid && !data.exists() && $dest.matches(/^d[0-9]$/) && root.child('game/status').val() == 'running' && root.child('players').child($uid).child('blocked').val() != true && newData.child('t').val() == now && newData.child('m').val() == root.child('secrets').child($dest).val()",
+            ".validate": "newData.hasChildren(['t','m'])"
+          }
+        },
+        "finishedAt": {
+          ".write": "auth != null && auth.uid == $uid && !data.exists() && root.child('game/status').val() == 'running' && newData.val() == now && newData.parent().child('collected').hasChildren(['d0','d1','d2','d3','d4','d5','d6','d7','d8','d9'])"
+        }
+      }
+    }
+  }
+}
